@@ -46,7 +46,8 @@ def SimulaSinalOptico(SpS, Rs, M, mod_format = 'pam', num_symbs = 1e6, pulse_for
     
     bitsTx = np.random.randint(2, size = int(np.log2(M)*num_symbs))
     
-    symbTx = modulateGray(bitsTx, M, mod_format)    
+    symbTx = modulateGray(bitsTx, M, mod_format)
+    print("SymbTx antes da normalização: ", symbTx)
     symbTx = pnorm(symbTx) # normaliza a potência 
     
     symbUp = upsample(symbTx, SpS)
