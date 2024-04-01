@@ -206,11 +206,12 @@ def test_loop(progress_dataloader, equalizer, loss):
     print(f"Perda média: {eval_loss:>8f} \n")
 
 def GeraSinalEqualizado(model, dataloader):
+    symbRx_NN_list = []
     model.eval()
     with torch.no_grad():
-        for batch, (X, y) in enumerate(full_dataloader_80):
+        for batch, (X, y) in enumerate(dataloader):
             X = X.float()
-            pred = modelo(X)
+            pred = model(X)
 
             # adiciona os símbolos preditos à lista
             symbRx_NN_list.append(pred.numpy().reshape(-1,))
