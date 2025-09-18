@@ -220,4 +220,80 @@ def GeraSinalEqualizado(model, dataloader):
     symbRx_NN = np.concatenate(symbRx_NN_list)
     
     return symbRx_NN
+
+def RetornaSinalEqualizado_RNN(modelo_rnn, dataloader):
+    '''
+    Função que realiza a equalização de sinal utilizando um modelo RNN treinado e retorna o sinal processado.
+
+    Args:
+        modelo_rnn (nn.Module): Modelo RNN treinado utilizado para equalizar o sinal.
+        dataloader (DataLoader): Dataloader contendo os dados de entrada para equalização.
+
+    Returns:
+        numpy.ndarray: Vetor unidimensional contendo o sinal equalizado.
+    '''
+    modelo_rnn.eval()
+    with torch.no_grad():
+        for batch, (X, y) in enumerate(dataloader):
+            X = X.float()
+            pred = modelo_rnn(X)
+
+            symbRx_NN = pred
+
+            symbRx_NN = symbRx_NN.numpy().reshape(-1,)
+    return symbRx_NN
+
+def train_loop_rnn(train_dataloader, model, loss, optimizer, cada_print):
+    '''
+    Função que realiza o treinamento de um modelo RNN utilizando um dataloader de treinamento.
+
+    Args:
+        train_dataloader (DataLoader): Dataloader contendo os dados de entrada e saída para treinamento.
+        model (nn.Module): Modelo RNN que será treinado.
+        loss (nn.Module): Função de perda utilizada para calcular o erro.
+        optimizer (torch.optim.Optimizer): Otimizador responsável por atualizar os pesos do modelo.
+        cada_print (int): Intervalo de batches para exibir a perda no console.
+
+    Returns:
+        None
+    '''
+    size = len(train_dataloader.dataset)
+    
+    model.train()
+    for batch, (x, y) in enumerate(train_dataloader):
+        x, y = x.float().to(device), y.float().to(device)
+        predict = model(x)
+        
+        loss_value = loss(predict, y)
+        
+        loss_value.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+        
+        if batch % cada_print == 0:
+            loss_value, current = loss_value.item(), (batch+1)*len(x)
+            print(f"loss: {loss_value:>7f}[{current:>5d}/{size:>5d}]" )
+def test_loop_rnn(progress_dataloader, equalizer, loss):
+    '''
+    Função que avalia o desempenho de um modelo RNN utilizando um dataloader de validação/teste.
+
+    Args:
+        progress_dataloader (DataLoader): Dataloader contendo os dados de entrada e saída para avaliação.
+        equalizer (nn.Module): Modelo RNN que será avaliado.
+        loss (nn.Module): Função de perda utilizada para calcular o erro.
+
+    Returns:
+        None
+    '''
+    size = len(progress_dataloader.dataset)
+    num_batches = len(progress_dataloader)
+    equalizer.eval()
+    eval_loss = 0
+    with torch.no_grad():
+        for x, y in progress_dataloader:
+            x, y = x.float().to(device), y.float().to(device)
+            pred = equalizer(x)
+            eval_loss += loss(pred, y).item()
+    eval_loss /= num_batches
+    print(f"Perda média: {eval_loss:>8f} \n")
             
