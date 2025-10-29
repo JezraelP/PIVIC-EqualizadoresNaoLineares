@@ -175,6 +175,28 @@ def CriaDataSet(symb,signal, SpS_in, train_pct = 0.8, Ntaps = 64, SpS_out = 1, b
     
     return train_dataset, test_dataset, full_dataset
 
+def training(train_dataloader, equalizer, loss, optimizer):
+    '''Função para treinamento da rede neural
+    
+    Args:
+        train_dataloader (DataLoader): DataLoader com os dados de treinamento;
+        equalizer (nn.Module): Rede neural a ser treinada
+        loss (nn.Module): Função de perda usada no treinamento;
+        optimizer (torch.optim.Optimizer): Otimizador usado no treinamento;
+    
+    '''
+    size = len(train_dataloader.dataset)
+    
+    equalizer.train()
+    for x, y in train_dataloader:
+        x, y = x.float(), y.float()
+        predict = equalizer(x)
+        loss_value = loss(predict, y)
+        
+        loss_value.backward()
+        optimizer.step()
+        optimizer.zero_grad()        
+
 def train_loop(train_dataloader, equalizer, loss, optimizer, cada_print):
     size = len(train_dataloader.dataset)
     
